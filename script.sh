@@ -1,10 +1,9 @@
 #!/bin/bash
 
 export DEBIAN_FRONTEND=noninteractive
-# Mysql root password
-debconf-set-selections <<< 'mariadb-server mysql-server/root_password password root'
-debconf-set-selections <<< 'mariadb-server mysql-server/root_password_again password root'
-# ADD PPA
+debconf-set-selections <<< 'mysql-server mysql-server/root_password password root'
+debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password root'
+# ADD nginx/php PPA's
 add-apt-repository ppa:ondrej/php
 add-apt-repository ppa:ondrej/nginx
 # MongoDB
@@ -26,15 +25,13 @@ sudo systemctl enable mongod
 
 # MariaDB
 echo "==================== INSTALLING MariaDB ====================="
-apt install -y -q mariadb-server
+apt install -y -q mysql-server
 echo "=================== CONFIGURING MariaDB ====================="
-sed -i -e 's/^\(bind-address\)/#\1/g' /etc/mysql/mariadb.conf.d/50-server.cnf
-echo "GRANT ALL on *.* TO root@'%' identified by 'root'" | mysql -uroot -proot
-echo "FLUSH PRIVILEGES" | mysql -uroot -proot
+sudo sed -i -e 's/bind-addres/#bind-address/g' /etc/mysql/mysql.conf.d/mysqld.cnf
+sudo sed -i -e 's/skip-external-locking/#skip-external-locking/g' /etc/mysql/mysql.conf.d/mysqld.cnf
+mysql -u root -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root'; FLUSH privileges;"
 # dashboard sql
-echo "CREATE DATABASE IF NOT EXISTS dashboard" | mysql -uroot -proot
-echo "CREATE USER 'vagrant'@'localhost' IDENTIFIED BY 'vagrant'" | mysql -uroot -proot
-echo "GRANT ALL PRIVILEGES ON dashboard.* TO 'vagrant'@'localhost' IDENTIFIED BY 'vagrant'" | mysql -uroot -proot
+mysql -u root -proot -e "CREATE DATABASE laravel;"
 
 # INSTALL NODE & YARN
 echo "==================== INSTALLING NODEJS ====================="
@@ -42,15 +39,14 @@ curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
 apt update -q
-apt install -y -q nodejs yarn openssl libssl-dev 
+apt install -y -q nodejs yarn openssl libssl-dev
 
 # PHP STUFF
 echo "==================== INSTALLING PHP 7.4 ====================="
-apt install -y -q composer php7.4-fpm php7.4-common php7.4-mysql php7.4-xml php7.4-xmlrpc php7.4-curl php7.4-gd php7.4-imagick php7.4-cli php7.4-dev php7.4-imap php7.4-mbstring php7.4-opcache php7.4-soap php7.4-zip unzip
+apt install -y -q composer php7.4-fpm php7.4-common php7.4-mysql php7.4-xml php7.4-xmlrpc php7.4-curl php7.4-gd php7.4-imagick php7.4-cli php7.4-dev php7.4-imap php7.4-mbstring php7.4-opcache php7.4-soap php7.4-zip php-mongodb unzip
 echo "==================== CONFIGURING PHP ========================"
 sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.4/fpm/php.ini
 sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.4/fpm/php.ini
-#sed -i "s/user .*;/user www-data;/" /etc/nginx/nginx.conf
 echo "cgi.fix_pathinfo = 0" >> /etc/php/7.4/fpm/php.ini
 echo "date.timezone = \"Europe/Lisbon\"" >> /etc/php/7.4/fpm/php.ini
 
@@ -69,13 +65,25 @@ dpkg-reconfigure --frontend noninteractive tzdata
 # Deploy
 echo "========================= DEPLOY ==========================="
 cd /vagrant
-#git clone https://github.com/mripta/dashboard.git
+# dashboard
+git clone https://github.com/mripta/dashboard.git
+cd dashboard
+composer install
+cp .env.example .env
+sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=root/" .env
+php artisan key:generate
+php artisan migrate
+# broker
+cd ..
+git clone https://github.com/mripta/broker.git
+cd broker
+npm install
 
 # Restart Services
 echo "=================== RESTARTING SERVICES ===================="
 service nginx restart
 service php7.4-fpm restart
-service mysql restart
+#service mysql restart
 
 echo "========================== VERSIONS ========================"
 echo "NPM " `npm -v`

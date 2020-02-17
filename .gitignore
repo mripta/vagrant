@@ -31,7 +31,7 @@ Temporary Items
 .vagrant/*
 
 # Log files (if you are creating logs in debug mode, uncomment this)
-# *.log
+*.log
 
 ### Vagrant Patch ###
 *.box
@@ -72,3 +72,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Project
+dashboard/
+broker/
