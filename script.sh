@@ -47,8 +47,11 @@ apt install -y -q composer php7.4-fpm php7.4-common php7.4-mysql php7.4-xml php7
 echo "==================== CONFIGURING PHP ========================"
 sed -i "s/error_reporting = .*/error_reporting = E_ALL/" /etc/php/7.4/fpm/php.ini
 sed -i "s/display_errors = .*/display_errors = On/" /etc/php/7.4/fpm/php.ini
+sed -i "s/upload_max_filesize = .*/upload_max_filesize = 20M/" /etc/php/7.4/fpm/php.ini
 echo "cgi.fix_pathinfo = 0" >> /etc/php/7.4/fpm/php.ini
 echo "date.timezone = \"Europe/Lisbon\"" >> /etc/php/7.4/fpm/php.ini
+sed -i "s/user = .*/user = vagrant/" /etc/php/7.4/fpm/pool.d/www.conf
+sed -i "s/group = .*/group = vagrant/" /etc/php/7.4/fpm/pool.d/www.conf
 
 # Nginx
 echo "==================== INSTALLING NGINX ====================="
