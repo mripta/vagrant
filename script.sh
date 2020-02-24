@@ -12,7 +12,7 @@ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongod
 
 echo "====================== UPDATE & UPGRADE ====================="
 apt-get update -q
-# Lets speed up the process
+# Lets speed up the script
 # apt dist-upgrade -y -q
 # apt autoremove -y -q
 apt-get install software-properties-common git
@@ -22,18 +22,9 @@ echo "==================== INSTALLING MongoDB ====================="
 apt-get install -y -q mongodb-org
 # DB directory
 mkdir -p /data/db
-# Start services
+# Start and enable MongoDB
 systemctl start mongod
 systemctl enable mongod
-# Add root user
-mongo << 'EOF'
-use admin
-db.createUser({user:"admin", pwd:"admin", roles:[{role:"root", db:"admin"}]})
-EOF
-# Add Auth to daemon
-sed -i "s/ExecStart=.*/ExecStart=\/usr\/bin\/mongod --auth --config \/etc\/mongod.conf/" /lib/systemd/system/mongod.service
-# Expose
-sed -i "s/  bindIp.*/  bindIp: 0.0.0.0/" /etc/mongod.conf
 
 # MySQL
 echo "==================== INSTALLING MySQL ====================="
@@ -43,8 +34,19 @@ echo "=================== CONFIGURING MySQL ====================="
 sed -i -e 's/bind-addres/#bind-address/g' /etc/mysql/mysql.conf.d/mysqld.cnf
 sed -i -e 's/skip-external-locking/#skip-external-locking/g' /etc/mysql/mysql.conf.d/mysqld.cnf
 mysql -u root -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root'; FLUSH privileges;"
-# dashboard sql
+# Dashboard sql
 mysql -u root -proot -e "CREATE DATABASE laravel;"
+
+echo "==================== CONFIGURING MongoDB ====================="
+# Add root user
+mongo << 'EOF'
+use admin
+db.createUser({user:"admin", pwd:"admin", roles:[{role:"root", db:"admin"}]})
+EOF
+# Add Auth to daemon
+sed -i "s/ExecStart=.*/ExecStart=\/usr\/bin\/mongod --auth --config \/etc\/mongod.conf/" /lib/systemd/system/mongod.service
+# Expose
+sed -i "s/  bindIp.*/  bindIp: 0.0.0.0/" /etc/mongod.conf
 
 # INSTALL NODE & YARN
 echo "==================== INSTALLING NODEJS ====================="
@@ -99,10 +101,10 @@ npm install
 # Restart Services
 echo "=================== RESTARTING SERVICES ===================="
 systemctl daemon-reload
-service mongod restart
-service mysql restart
-service php7.4-fpm restart
-service nginx restart
+systemctl restart mongod
+systemctl restart mysql
+systemctl restart php7.4-fpm
+systemctl restart nginx
 
 echo "========================== VERSIONS ========================"
 echo "NPM " `npm -v`
