@@ -26,7 +26,8 @@ Vagrant.configure("2") do |config|
   # NOTE: This will enable public access to the opened port
   config.vm.network "forwarded_port", guest: 80, host: 80 # HTTP
   config.vm.network "forwarded_port", guest: 1883, host: 1883 # MQTT
-  config.vm.network "forwarded_port", guest: 3306, host: 3306 # MySQL 
+  config.vm.network "forwarded_port", guest: 3306, host: 3306 # MySQL
+  config.vm.network "forwarded_port", guest: 27017, host: 27017 # MongoDB
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine and only allow access
