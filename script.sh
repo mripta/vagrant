@@ -42,6 +42,13 @@ echo "==================== CONFIGURING MongoDB ====================="
 mongo << 'EOF'
 use admin
 db.createUser({user:"admin", pwd:"admin", roles:[{role:"root", db:"admin"}]})
+use aedes
+db.createCollection("persistence")
+db.createCollection("publish")
+db.createCollection("subscribe")
+db.createCollection("logs")
+use dashboard
+db.createCollection("logs")
 EOF
 # Add Auth to daemon
 sed -i "s/ExecStart=.*/ExecStart=\/usr\/bin\/mongod --auth --config \/etc\/mongod.conf/" /lib/systemd/system/mongod.service
