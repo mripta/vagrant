@@ -38,7 +38,7 @@ mysql -u root -proot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY
 mysql -u root -proot -e "CREATE DATABASE laravel;"
 
 echo "==================== CONFIGURING MongoDB ====================="
-# Add root user
+# Create root user and collections
 mongo << 'EOF'
 use admin
 db.createUser({user:"admin", pwd:"admin", roles:[{role:"root", db:"admin"}]})
@@ -103,7 +103,11 @@ php artisan migrate
 cd ..
 git clone https://github.com/mripta/broker.git
 cd broker
+cp .env.example .env
+npm install -g nodemon
 npm install
+# Start the MQTT broker
+screen -dmS broker nodemon -L index.js
 
 # Restart Services
 echo "=================== RESTARTING SERVICES ===================="
