@@ -27,6 +27,7 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 80, host: 80 # HTTP
   config.vm.network "forwarded_port", guest: 1883, host: 1883 # MQTT
   config.vm.network "forwarded_port", guest: 3306, host: 3306 # MySQL
+  config.vm.network "forwarded_port", guest: 8000, host: 8000 # PHP Dev Server
   config.vm.network "forwarded_port", guest: 8888, host: 8888 # WebSockets
   config.vm.network "forwarded_port", guest: 27017, host: 27017 # MongoDB
 
@@ -55,6 +56,7 @@ Vagrant.configure("2") do |config|
   # Example for VirtualBox:
   #
   config.vm.provider "virtualbox" do |vb|
+    vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/v-root", "1"]
     vb.linked_clone = true
     vb.memory = "2048"
     vb.cpus = 2
@@ -66,5 +68,7 @@ Vagrant.configure("2") do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
-  config.vm.provision "shell", path: "script.sh"
+  config.vm.provision "shell", path: "provision.sh"
+
+  config.vm.provision "shell", path: "deploy.sh", privileged: false
 end
