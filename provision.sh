@@ -82,7 +82,7 @@ sed -i "s/group = .*/group = vagrant/" /etc/php/7.4/fpm/pool.d/www.conf
 
 # Install mongodb php extension
 pecl install mongodb
-echo "extension=mongodb.so" >> /etc/php/7.4/cli/php.ini
+echo "extension=mongodb.so" >> /etc/php/7.4/fpm/php.ini
 
 # Install composer
 echo "==================== INSTALLING COMPOSER ===================="
@@ -92,9 +92,6 @@ php composer-setup.php
 php -r "unlink('composer-setup.php');"
 mv composer.phar /usr/local/bin/composer
 chmod +x /usr/local/bin/composer
-
-# Restart PHP
-systemctl restart php7.4-fpm
 
 # Nginx
 echo "==================== INSTALLING NGINX ====================="
