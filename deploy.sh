@@ -17,7 +17,6 @@ cd ..
 git clone https://github.com/mripta/broker.git
 cd broker
 cp .env.example .env
-yarn global add nodemon
 yarn install
 # Start the MQTT broker
-screen -dmS broker nodemon -L index.js
+screen -dmS broker node index.js
